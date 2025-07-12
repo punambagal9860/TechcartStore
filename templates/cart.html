@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - TechKart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="display-5 fw-bold mb-4">
+                <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+            </h1>
+        </div>
+    </div>
+    
+    {% if cart_items %}
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Cart Items ({{ cart_items|length }})</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for item in cart_items %}
+                            <div class="cart-item mb-3 {% if not loop.last %}border-bottom pb-3{% endif %}">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="{{ item.image_url }}" 
+                                             alt="{{ item.name }}" 
+                                             class="img-fluid rounded cart-item-image">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="mb-1">{{ item.name }}</h6>
+                                        <p class="text-muted mb-0">${{ "%.2f"|format(item.price) }} each</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="quantity-controls">
+                                            <div class="input-group">
+                                                <button class="btn btn-outline-secondary btn-sm quantity-btn" 
+                                                        onclick="updateQuantity({{ item.product_id }}, {{ item.quantity - 1 }})">
+                                                    <i class="fas fa-minus"></i>
+                                                </button>
+                                                <input type="number" class="form-control text-center quantity-input" 
+                                                       value="{{ item.quantity }}" min="1" 
+                                                       onchange="updateQuantity({{ item.product_id }}, this.value)">
+                                                <button class="btn btn-outline-secondary btn-sm quantity-btn" 
+                                                        onclick="updateQuantity({{ item.product_id }}, {{ item.quantity + 1 }})">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <p class="h6 text-primary mb-0">${{ "%.2f"|format(item.subtotal) }}</p>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <a href="{{ url_for('remove_from_cart', product_id=item.product_id) }}" 
+                                           class="btn btn-outline-danger btn-sm"
+                                           onclick="return confirm('Remove this item from cart?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="order-summary">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal:</span>
+                                <span>${{ "%.2f"|format(total) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Shipping:</span>
+                                <span>{% if total > 50 %}FREE{% else %}$9.99{% endif %}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax:</span>
+                                <span>${{ "%.2f"|format(total * 0.08) }}</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>Total:</strong>
+                                <strong class="text-primary">
+                                    ${{ "%.2f"|format(total + (0 if total > 50 else 9.99) + (total * 0.08)) }}
+                                </strong>
+                            </div>
+                            
+                            {% if current_user %}
+                                <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg w-100 mb-2">
+                                    <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg w-100 mb-2">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login to Checkout
+                                </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('products') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Shipping Info -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">
+                            <i class="fas fa-shipping-fast me-2"></i>Shipping Information
+                        </h6>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Free shipping on orders over $50
+                            </li>
+                            <li class="mb-1">
+                                <i class="fas fa-check text-success me-2"></i>
+                                2-3 business days delivery
+                            </li>
+                            <li>
+                                <i class="fas fa-check text-success me-2"></i>
+                                Track your order online
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h3 class="text-muted">Your cart is empty</h3>
+                    <p class="text-muted">Start shopping to add items to your cart</p>
+                    <a href="{{ url_for('products') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-shopping-bag me-2"></i>Shop Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function updateQuantity(productId, newQuantity) {
+    if (newQuantity < 1) {
+        if (confirm('Remove this item from cart?')) {
+            window.location.href = `/remove_from_cart/${productId}`;
+        }
+    } else {
+        window.location.href = `/update_cart/${productId}?quantity=${newQuantity}`;
+    }
+}
+</script>
+{% endblock %}
